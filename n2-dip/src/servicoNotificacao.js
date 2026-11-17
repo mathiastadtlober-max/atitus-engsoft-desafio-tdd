@@ -1,15 +1,22 @@
+export const MENSAGEM_BOAS_VINDAS = 'Bem-vindo!';
+
 export class ServicoNotificacao {
-  constructor() {
-    // ❌ Acoplamento Forte: A classe instancia sua própria dependência (Simulação)
-    this.gatewayEmail = {
-      enviar: async (email, mensagem) => {
-        console.log(`[REAL] Enviando e-mail para ${email}: ${mensagem}`);
-        return true;
-      }
-    };
+  // ✅ DIP: o serviço depende de uma abstração (qualquer objeto com
+  // enviar(email, mensagem)) recebida pelo construtor, e não de uma
+  // implementação concreta criada internamente.
+  constructor(gatewayEmail) {
+    if (typeof gatewayEmail?.enviar !== 'function') {
+      throw new Error(
+        'ServicoNotificacao precisa de um gateway com o método enviar(email, mensagem)'
+      );
+    }
+    this.gatewayEmail = gatewayEmail;
   }
 
   async enviarBoasVindas(usuario) {
-    return await this.gatewayEmail.enviar(usuario.email, 'Bem-vindo!');
+    if (!usuario?.email) {
+      throw new Error('Usuário sem e-mail');
+    }
+    return this.gatewayEmail.enviar(usuario.email, MENSAGEM_BOAS_VINDAS);
   }
 }
